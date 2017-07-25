@@ -1,0 +1,39 @@
+Option Compare Database
+Option Explicit
+
+
+
+Public Function Export_Raw_Data(ByVal Program As String)
+    'This sub exports the data from the current dashboard  to a separate excel workbook
+    
+    'Dim variables
+    Dim path, curDate, qryName As String
+    
+       
+      'Define title and file path
+    curDate = Date
+    curDate = Replace(curDate, "/", "_", 1, 2)
+    path = CurrentProject.path & "\SMART Factory Exports\" & Program & "_SMART_Factory_Export_" & curDate & ".xlsx"
+    
+    
+    
+    'create .xlsx file if it doesn't already exist, and add the first worksheet
+    'Set the query to be exported
+    On Error Resume Next
+    qryName = "qrySummaryStats (" & Program & ")"
+    DoCmd.TransferSpreadsheet acExport, acSpreadsheetTypeExcel12Xml, qryName, path, True, "Summary_Stats"
+    qryName = "qryShipments (" & Program & ")"
+    DoCmd.TransferSpreadsheet acExport, acSpreadsheetTypeExcel12Xml, qryName, path, True, "Shipments"
+    qryName = "qryRawData (" & Program & ")"
+    DoCmd.TransferSpreadsheet acExport, acSpreadsheetTypeExcel12Xml, qryName, path, True, "Open_Orders"
+    qryName = "qry31DayMonth (" & Program & ")"
+    DoCmd.TransferSpreadsheet acExport, acSpreadsheetTypeExcel12Xml, qryName, path, True, "Daily_Cmplt"
+    qryName = "qry31DayMonthDetailed (" & Program & ")"
+    DoCmd.TransferSpreadsheet acExport, acSpreadsheetTypeExcel12Xml, qryName, path, True, "Dtl_Daily_Cmplt"
+    
+    
+    On Error GoTo 0
+    
+    MsgBox "Export Complete. File located here: " & vbNewLine & path
+    
+End Function
