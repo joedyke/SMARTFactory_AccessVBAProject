@@ -1,0 +1,10 @@
+Private Sub Form_Close()
+    Call CreateCumulativePlan
+    
+    On Error Resume Next
+    Forms![Display Form (JSFAPA)].Refresh
+    Forms![Display Form (JSFAPA)].Requery
+    Forms![Display Form (TEAM)]![HUMSMax].Requery
+    Forms![Display Form (TEAM)]![Graph107].Requery
+    On Error GoTo 0
+End Sub
