@@ -1,6 +1,16 @@
 Option Compare Database
 Option Explicit
 
+Public Sub frmControlPanel_Close(ByVal currentDash As String)
+    Dim formstring As String
+    
+    formstring = "Display Form (" & currentDash & ")"
+    Call CreateCumulativePlan
+    On Error Resume Next 'ignore errors if the form we are trying to refresh isn't open
+    Forms(formstring).Refresh
+    Forms![Display Form (TEAM)].Refresh
+    On Error GoTo 0
+End Sub
 
 'This function exports all the current part numbers as a text file
 Public Sub ExportPNsToTxt()
@@ -30,7 +40,6 @@ Public Sub ExportPNsToTxt()
     Close #1
     
 End Sub
-
 
 
 
@@ -162,7 +171,7 @@ End Function
 '==========================================================
 Function DateAddW(ByVal TheDate, ByVal Interval)
  
-   Dim Weeks As Long, OddDays As Long, Temp As String
+   Dim Weeks As Long, OddDays As Long, temp As String
  
    If VarType(TheDate) <> 7 Or VarType(Interval) < 2 Or _
               VarType(Interval) > 5 Then
@@ -174,10 +183,10 @@ Function DateAddW(ByVal TheDate, ByVal Interval)
  
    ' Make sure TheDate is a workday (round down).
  
-      Temp = Format(TheDate, "ddd")
-      If Temp = "Sun" Then
+      temp = Format(TheDate, "ddd")
+      If temp = "Sun" Then
          TheDate = TheDate - 2
-      ElseIf Temp = "Sat" Then
+      ElseIf temp = "Sat" Then
          TheDate = TheDate - 1
       End If
  
@@ -201,10 +210,10 @@ Function DateAddW(ByVal TheDate, ByVal Interval)
  
    ' Make sure TheDate is a workday (round up).
  
-      Temp = Format(TheDate, "ddd")
-      If Temp = "Sun" Then
+      temp = Format(TheDate, "ddd")
+      If temp = "Sun" Then
          TheDate = TheDate + 1
-      ElseIf Temp = "Sat" Then
+      ElseIf temp = "Sat" Then
          TheDate = TheDate + 2
       End If
  
