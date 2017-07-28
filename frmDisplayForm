@@ -1,9 +1,0 @@
-Private Sub Child173_Enter()
-    Me!Child173.Form.AllowAdditions = False
-End Sub
-
-Private Sub Form_Timer()
-    Call refreshformwait
-    Me.Refresh
-    Me.Requery
-End Sub
