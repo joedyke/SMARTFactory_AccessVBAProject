@@ -15,15 +15,15 @@ End Sub
 'This function exports all the current part numbers as a text file
 Public Sub ExportPNsToTxt()
     Dim rs As DAO.Recordset
-    Dim sql, PNsPath As String
+    Dim SQL, PNsPath As String
     
     'Sql code for query to determine current pns
-    sql = "SELECT tblDemandInput.PN" & _
+    SQL = "SELECT tblDemandInput.PN" & _
           " FROM tblDemandInput" & _
           " WHERE (((tblDemandInput.PN) Not Like '*N/A*'));"
     
     'set record set to query defined by sql
-    Set rs = CurrentDb.OpenRecordset(sql, dbOpenSnapshot)
+    Set rs = CurrentDb.OpenRecordset(SQL, dbOpenSnapshot)
     
     'determine path for PN export
     PNsPath = CurrentProject.path & "\Scripts\PartNumbers.txt"
@@ -40,6 +40,7 @@ Public Sub ExportPNsToTxt()
     Close #1
     
 End Sub
+
 
 
 
@@ -254,15 +255,15 @@ Public Sub CreateCumulativePlan()
         ReqPerDayRemainder, ReqPerDayNew, i, ExtraUnit, ReqDlvTot As Integer
     Dim DB As Object
     Dim rs As DAO.Recordset
-    Dim sql, Program, ShortDate As String
+    Dim SQL, Program, ShortDate As String
     
     Set DB = CurrentDb
     Set rs = DB.OpenRecordset("qryMonthPlan")
     
     
     'Delete records
-    sql = "DELETE tblCumulativePlan.* FROM tblCumulativePlan;"
-    DB.Execute sql
+    SQL = "DELETE tblCumulativePlan.* FROM tblCumulativePlan;"
+    DB.Execute SQL
 
     
     totDays = DaysInMonth
@@ -305,9 +306,9 @@ Public Sub CreateCumulativePlan()
                     End If
                     ReqDlvTot = ReqDlvTot + ReqPerDayNew
                     'Send info to tblCumulativePlan
-                    sql = "INSERT INTO tblCumulativePlan (shortdate, ReqDlvTot, Program ) " & _
+                    SQL = "INSERT INTO tblCumulativePlan (shortdate, ReqDlvTot, Program ) " & _
                           "SELECT #" & ShortDate & "#, " & ReqDlvTot & ", '" & Program & "';"
-                    DB.Execute sql
+                    DB.Execute SQL
                Next i
                 .MoveNext
             Wend
@@ -334,7 +335,7 @@ End Sub
 'development
 Public Function createqryOp(ByVal opNum As Integer, ByVal opName As String, ByVal opProgram As String, ByVal IsHospital As Boolean, Optional OpNames As Variant)
     
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     Dim element As Variant
@@ -349,7 +350,7 @@ Public Function createqryOp(ByVal opNum As Integer, ByVal opName As String, ByVa
     
     
     'Define SQL string
-    sql = "SELECT [qryRawData (" & opProgram & ")].Order," & _
+    SQL = "SELECT [qryRawData (" & opProgram & ")].Order," & _
         " [qryRawData (" & opProgram & ")].[SN]," & _
         " [qryRawData (" & opProgram & ")].Material," & _
         " [qryRawData (" & opProgram & ")].[Bscstart]," & _
@@ -367,19 +368,19 @@ Public Function createqryOp(ByVal opNum As Integer, ByVal opName As String, ByVa
         " [qryRawData (" & opProgram & ")].DisplayDashboard" & _
         " FROM [qryRawData (" & opProgram & ")]"
     If IsHospital = False Then
-        sql = sql & " WHERE ((([qryRawData (" & opProgram & ")].[Operationshorttext])='" & opName & "'))" & _
+        SQL = SQL & " WHERE ((([qryRawData (" & opProgram & ")].[Operationshorttext])='" & opName & "'))" & _
                 " AND (([qryRawData (" & opProgram & ")].DisplayDashboard)=True)" & _
                 " ORDER BY Cdbl([qryRawData (" & opProgram & ")].[Age]) DESC;"
     Else
-        sql = sql & " WHERE (("
+        SQL = SQL & " WHERE (("
         For Each element In OpNames
-            sql = sql & "([qryRawData (" & opProgram & ")].[Operationshorttext]) Not Like '" & element & "' And"
+            SQL = SQL & "([qryRawData (" & opProgram & ")].[Operationshorttext]) Not Like '" & element & "' And"
         Next
-        sql = sql & "([qryRawData (" & opProgram & ")].[Operationshorttext]) Not Like 'Finished Goods'))" & _
+        SQL = SQL & "([qryRawData (" & opProgram & ")].[Operationshorttext]) Not Like 'Finished Goods'))" & _
                     " AND (([qryRawData (" & opProgram & ")].DisplayHospital)=True)"
-        sql = sql & "ORDER BY CDbl([qryRawData (" & opProgram & ")].[Age]) DESC;"
+        SQL = SQL & "ORDER BY CDbl([qryRawData (" & opProgram & ")].[Age]) DESC;"
     End If
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
@@ -388,7 +389,7 @@ End Function
 'This funciton is only called during creation or re-creation of the queries during
 'development
 Public Function createqryOpSum(ByVal opNum As Integer, ByVal opName As String, ByVal opProgram As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName, qrySumName As String
     Dim element As Variant
@@ -403,11 +404,11 @@ Public Function createqryOpSum(ByVal opNum As Integer, ByVal opName As String, B
     End If
     
     'Define SQL string
-    sql = "SELECT Count([" & qryName & "].[SN]) AS QTY " & _
+    SQL = "SELECT Count([" & qryName & "].[SN]) AS QTY " & _
         "FROM [" & qryName & "];"
 
     'Create query
-    Set qdf = CurrentDb.CreateQueryDef(qrySumName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qrySumName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qrySumName
 End Function
@@ -415,14 +416,14 @@ End Function
 
 'This function creates the qryDemand (xxx) query using the program as the input
 Public Function createqryFinishedGoods(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
     'Define title
     qryName = "qryFinishedGoods (" & Program & ")"
     
-    sql = "SELECT tblFinishedGoods.ExternalLongMaterialNumber AS PN," & _
+    SQL = "SELECT tblFinishedGoods.ExternalLongMaterialNumber AS PN," & _
           " Sum(Nz([tblFinishedGoods]![Unrestricted],0)) AS [On Hand]" & _
           " FROM tblFinishedGoods INNER JOIN tblDemandInput ON tblFinishedGoods.ExternalLongMaterialNumber = tblDemandInput.PN" & _
           " WHERE (((tblFinishedGoods.SLoc)<>'RNN1') AND ((tblDemandInput.Program)='" & Program & "'))" & _
@@ -431,7 +432,7 @@ Public Function createqryFinishedGoods(ByVal Program As String)
 
     
     'Create query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
     
@@ -439,7 +440,7 @@ End Function
 
 'This function creates the qry31DayDetail (xxx) query using the program as the input
 Public Function createqry31DayDetail(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -448,7 +449,7 @@ Public Function createqry31DayDetail(ByVal Program As String)
     
 
     
-    sql = "SELECT CumulativeDayMonth.[Short Date]," & _
+    SQL = "SELECT CumulativeDayMonth.[Short Date]," & _
         " CumulativeDayMonth.[Actual Shipments]," & _
         " CumulativeDayMonth.[Required Ship Per Day]," & _
         " CumulativeDayMonth.[Required Cumulative]," & _
@@ -459,7 +460,7 @@ Public Function createqry31DayDetail(ByVal Program As String)
         " WHERE (((CumulativeDayMonth.Program)='" & Program & "'));"
 
     'Create query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
     
@@ -467,7 +468,7 @@ End Function
 
 'This function creates the qry31DayMonth (xxx) query using the program as the input
 Public Function createqry31DayMonth(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -476,7 +477,7 @@ Public Function createqry31DayMonth(ByVal Program As String)
     
     
     
-    sql = "SELECT tblCumulativePlan.shortdate," & _
+    SQL = "SELECT tblCumulativePlan.shortdate," & _
           " tblCumulativePlan.ReqDlvTot," & _
           " tblCumulativePlan.Program," & _
           " [qryDlvOrdersPNQuantitiesSum (" & Program & ")].DLVTot" & _
@@ -486,7 +487,7 @@ Public Function createqry31DayMonth(ByVal Program As String)
 
 
     'Create query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
     
@@ -494,7 +495,7 @@ End Function
 
 'This function creates the qryPlanExecution query using the program as the input
 Public Function createqryPlanExecution(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -503,7 +504,7 @@ Public Function createqryPlanExecution(ByVal Program As String)
     
     
     
-    sql = "SELECT [qry31DayMonth (" & Program & ")].Program," & _
+    SQL = "SELECT [qry31DayMonth (" & Program & ")].Program," & _
          " [qry31DayMonth (" & Program & ")].ReqDlvTot," & _
          " [qry31DayMonth (" & Program & ")].DLVTot," & _
          " [qry31DayMonth (" & Program & ")].shortdate" & _
@@ -514,7 +515,7 @@ Public Function createqryPlanExecution(ByVal Program As String)
 
 
     'Create query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
     
@@ -523,7 +524,7 @@ End Function
 
 'This function creates the qry31RawData (xxx) query using the program as the input
 Public Function createqryRawData(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -531,7 +532,7 @@ Public Function createqryRawData(ByVal Program As String)
     qryName = "qryRawData (" & Program & ")"
     
     
-    sql = "SELECT [RAW DATA].[Order]," & _
+    SQL = "SELECT [RAW DATA].[Order]," & _
         " [RAW DATA].SN," & _
         " [RAW DATA].ActRelease," & _
         " [RAW DATA].Material ," & _
@@ -554,8 +555,8 @@ Public Function createqryRawData(ByVal Program As String)
         " [RAW DATA].Targetqty," & _
         " [RAW DATA].Unit," & _
         " [RAW DATA].ActStartTime,"
-    sql = sql & " [RAW DATA].ActfinishTime,"
-    sql = sql & " [RAW DATA].[Minutes Left Till Due]," & _
+    SQL = SQL & " [RAW DATA].ActfinishTime,"
+    SQL = SQL & " [RAW DATA].[Minutes Left Till Due]," & _
         " [RAW DATA].[Flag Set]," & _
         " [RAW DATA].DisplayDashboard," & _
         " [RAW DATA].DisplayHospital" & _
@@ -565,14 +566,14 @@ Public Function createqryRawData(ByVal Program As String)
     
 
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
 
 'This function creates the qryDlvOrdersPNQuantities (xxx) query using the program as the input
 Public Function createqryDlvOrdersPNQuantities(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -580,7 +581,7 @@ Public Function createqryDlvOrdersPNQuantities(ByVal Program As String)
     qryName = "qryDlvOrdersPNQuantities (" & Program & ")"
     
     
-    sql = "SELECT [qryDeliveredOrders (" & Program & ")].Material," & _
+    SQL = "SELECT [qryDeliveredOrders (" & Program & ")].Material," & _
           " [qryDeliveredOrders (" & Program & ")].ActfinishDate_d," & _
           " Day([ActfinishDate_d]) AS DayOfMonth," & _
           " Sum([qryDeliveredOrders (" & Program & ")].Targetqty) AS DLVQTY" & _
@@ -591,14 +592,14 @@ Public Function createqryDlvOrdersPNQuantities(ByVal Program As String)
 
 
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
 
 'This function creates the qryDlvOrdersPNQuantitiesSum (xxx) query using the program as the input
 Public Function createqryDlvOrdersPNQuantitiesSum(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -606,7 +607,7 @@ Public Function createqryDlvOrdersPNQuantitiesSum(ByVal Program As String)
     qryName = "qryDlvOrdersPNQuantitiesSum (" & Program & ")"
 
     
-    sql = "SELECT [31 Days].[Day of Month] AS Dayy," & _
+    SQL = "SELECT [31 Days].[Day of Month] AS Dayy," & _
         " Sum(Nz([qryDlvOrdersPNQuantities (" & Program & ")]![DLVQTY],0)) AS DLVQTY," & _
         " Nz(DSum('[DLVQTY]','qryDlvOrdersPNQuantities (" & Program & ")','DayofMonth<=' & [Dayy]),0) AS RunningTot," & _
         " IIf([Dayy]>Day(Date()),0,[RunningTot]) AS DLVTot" & _
@@ -615,14 +616,14 @@ Public Function createqryDlvOrdersPNQuantitiesSum(ByVal Program As String)
         
 
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
 
 'This function creates the qryPNandDescription (xxx) query using the program as the input
 Public Function createqryPNandDescription(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -630,21 +631,21 @@ Public Function createqryPNandDescription(ByVal Program As String)
     qryName = "qryPNandDescription (" & Program & ")"
     
     
-    sql = "SELECT tblDemandInput.PN," & _
+    SQL = "SELECT tblDemandInput.PN," & _
           " tblDemandInput.Program," & _
           " tblDemandInput.Description" & _
           " FROM tblDemandInput" & _
           " WHERE (((tblDemandInput.Program)='" & Program & "'));"
 
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
 
 'This function creates the qryDeliveredOrders (xxx) query using the program as the input
 Public Function createqryDeliveredOrders(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -652,7 +653,7 @@ Public Function createqryDeliveredOrders(ByVal Program As String)
     qryName = "qryDeliveredOrders (" & Program & ")"
     
     
-    sql = "SELECT DeliveredOrders.Program," & _
+    SQL = "SELECT DeliveredOrders.Program," & _
         " DeliveredOrders.Targetqty," & _
         " DeliveredOrders.Order," & _
         " DeliveredOrders.Material," & _
@@ -662,14 +663,14 @@ Public Function createqryDeliveredOrders(ByVal Program As String)
 
     
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
 
 'This function creates the qryDeliveredOrders (xxx) query using the program as the input
 Public Function createqryDailyCompletes(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -677,7 +678,7 @@ Public Function createqryDailyCompletes(ByVal Program As String)
     qryName = "qryDailyCompletes (" & Program & ")"
     
     
-    sql = "SELECT Sum(Nz([Targetqty],0)) AS DeliveryQTY," & _
+    SQL = "SELECT Sum(Nz([Targetqty],0)) AS DeliveryQTY," & _
         " [Output Linearity Setup].Date2" & _
         " FROM [qryDeliveredOrders (" & Program & ")] RIGHT JOIN [Output Linearity Setup] ON [qryDeliveredOrders (" & Program & ")].[ActfinishDate_d] = [Output Linearity Setup].Date2" & _
         " GROUP BY [Output Linearity Setup].Date2;"
@@ -685,14 +686,14 @@ Public Function createqryDailyCompletes(ByVal Program As String)
 
     
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
 
 'This function creates the qryOTDSetup (xxx) query using the program as the input
 Public Function createqryOTDSetup(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -700,7 +701,7 @@ Public Function createqryOTDSetup(ByVal Program As String)
     qryName = "qryOTDSetup (" & Program & ")"
     
     
-    sql = "SELECT tblOTD.Material," & _
+    SQL = "SELECT tblOTD.Material," & _
           " CDate([ShpCmplDte]) AS ShpCmplDte_d," & _
           " tblOTD.CustReqDate," & _
           " tblOTD.ShippedQuantity," & _
@@ -711,14 +712,14 @@ Public Function createqryOTDSetup(ByVal Program As String)
           " WHERE (((CDate([ShpCmplDte])) Between DateSerial(Year(Date()),Month(Date()),1) And DateSerial(Year(Date()),Month(Date()),31)) AND ((tblDemandInput.Program)='" & Program & "'));"
     
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
 
 'This function creates the qryOTDOnTime (xxx) query using the program as the input
 Public Function createqryOTDOnTime(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -726,14 +727,14 @@ Public Function createqryOTDOnTime(ByVal Program As String)
     qryName = "qryOTDOnTime (" & Program & ")"
     
     
-    sql = "SELECT [qryOTDSetup (" & Program & ")].[On Time Flag]," & _
+    SQL = "SELECT [qryOTDSetup (" & Program & ")].[On Time Flag]," & _
         " [qryOTDSetup (" & Program & ")].[ShippedQuantity]" & _
         " FROM [qryOTDSetup (" & Program & ")]" & _
         " WHERE ((([qryOTDSetup (" & Program & ")].[On Time Flag])='On Time'));"
     
     
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
@@ -741,7 +742,7 @@ End Function
 
 'This function creates the qryOTDOnTimeSum (xxx) query using the program as the input
 Public Function createqryOTDOnTimeSum(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -749,19 +750,19 @@ Public Function createqryOTDOnTimeSum(ByVal Program As String)
     qryName = "qryOTDOnTimeSum (" & Program & ")"
     
     
-    sql = "SELECT CDbl(Nz(Sum([qryOTDOnTime (" & Program & ")].[ShippedQuantity]),0)) AS [SumOfShippedQuantity]" & _
+    SQL = "SELECT CDbl(Nz(Sum([qryOTDOnTime (" & Program & ")].[ShippedQuantity]),0)) AS [SumOfShippedQuantity]" & _
         " FROM [qryOTDOnTime (" & Program & ")];"
     
     
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
 
 'This function creates the qryOTDLate (xxx) query using the program as the input
 Public Function createqryOTDLate(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -769,14 +770,14 @@ Public Function createqryOTDLate(ByVal Program As String)
     qryName = "qryOTDLate (" & Program & ")"
     
     
-    sql = "SELECT [qryOTDSetup (" & Program & ")].[On Time Flag]," & _
+    SQL = "SELECT [qryOTDSetup (" & Program & ")].[On Time Flag]," & _
         " [qryOTDSetup (" & Program & ")].[ShippedQuantity]" & _
         " FROM [qryOTDSetup (" & Program & ")]" & _
         " WHERE ((([qryOTDSetup (" & Program & ")].[On Time Flag])='Late'));"
     
     
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
@@ -784,7 +785,7 @@ End Function
 
 'This function creates the qryOTDLateSum (xxx) query using the program as the input
 Public Function createqryOTDLateSum(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -792,19 +793,19 @@ Public Function createqryOTDLateSum(ByVal Program As String)
     qryName = "qryOTDLateSum (" & Program & ")"
     
     
-    sql = "SELECT CDbl(Nz(Sum([qryOTDLate (" & Program & ")].[ShippedQuantity]),0)) AS [SumOfShippedQuantity]" & _
+    SQL = "SELECT CDbl(Nz(Sum([qryOTDLate (" & Program & ")].[ShippedQuantity]),0)) AS [SumOfShippedQuantity]" & _
         " FROM [qryOTDLate (" & Program & ")];"
     
     
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
 
 'This function creates the qryOTD (xxx) query using the program as the input
 Public Function createqryOTD(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -812,20 +813,20 @@ Public Function createqryOTD(ByVal Program As String)
     qryName = "qryOTD (" & Program & ")"
     
     
-    sql = "SELECT IIf(([qryOTDOnTimeSum (" & Program & ")]![SumOfShippedQuantity]=0 And [qryOTDLateSum (" & Program & ")]![SumOfShippedQuantity]=0),'N/A',Round([qryOTDOnTimeSum (" & Program & ")]![SumOfShippedQuantity]/([qryOTDLateSum (" & Program & ")]![SumOfShippedQuantity]+[qryOTDOnTimeSum (" & Program & ")]![SumOfShippedQuantity])*100,0)) AS [OTD %]" & _
+    SQL = "SELECT IIf(([qryOTDOnTimeSum (" & Program & ")]![SumOfShippedQuantity]=0 And [qryOTDLateSum (" & Program & ")]![SumOfShippedQuantity]=0),'N/A',Round([qryOTDOnTimeSum (" & Program & ")]![SumOfShippedQuantity]/([qryOTDLateSum (" & Program & ")]![SumOfShippedQuantity]+[qryOTDOnTimeSum (" & Program & ")]![SumOfShippedQuantity])*100,0)) AS [OTD %]" & _
         " FROM [qryOTDLateSum (" & Program & ")], [qryOTDOnTimeSum (" & Program & ")];"
 
     
     
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
 
 'This function creates the qryOutputLinearity (xxx) query using the program as the input
 Public Function createqryOutputLinearity(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -833,21 +834,21 @@ Public Function createqryOutputLinearity(ByVal Program As String)
     qryName = "qryOutputLinearity (" & Program & ")"
     
     
-    sql = "SELECT StDev([qryDailyCompletes (" & Program & ")]![DeliveryQTY]) AS [Standard Deviation]," & _
+    SQL = "SELECT StDev([qryDailyCompletes (" & Program & ")]![DeliveryQTY]) AS [Standard Deviation]," & _
         " Avg([qryDailyCompletes (" & Program & ")]![DeliveryQTY]) AS [Average Units/Day]," & _
         " IIf([Average Units/Day]<1,'N/A',Round(IIf([Standard Deviation]=0,100,(1-(([Standard Deviation]/3)/[Average Units/Day]))*100),0)) AS [Output Linearity]" & _
         " FROM [qryDailyCompletes (" & Program & ")];"
     
     
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
 
 'This function creates the qryShipments (xxx) query using the program as the input
 Public Function createqryShipments(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -855,7 +856,7 @@ Public Function createqryShipments(ByVal Program As String)
     qryName = "qryShipments (" & Program & ")"
     
     
-    sql = "SELECT tblShipments.Material," & _
+    SQL = "SELECT tblShipments.Material," & _
           " tblShipments.MaterialDescription," & _
           " tblShipments.Serialnumber," & _
           " tblShipments.Deliveryquantity," & _
@@ -870,14 +871,14 @@ Public Function createqryShipments(ByVal Program As String)
           " AND (Not (tblShipments.DlvTy)='LR') " & _
           " AND ((tblDemandInput.Program)='" & Program & "'));"
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
 
 'This function creates the qryShipmentsSum (xxx) query using the program as the input
 Public Function createqryShipmentsSum(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -885,20 +886,20 @@ Public Function createqryShipmentsSum(ByVal Program As String)
     qryName = "qryShipmentsSum (" & Program & ")"
     
     
-    sql = "SELECT Count(Nz([qryShipments (" & Program & ")]![Serialnumber],0)) AS [Total Shipped]," & _
+    SQL = "SELECT Count(Nz([qryShipments (" & Program & ")]![Serialnumber],0)) AS [Total Shipped]," & _
         " [qryShipments (" & Program & ")].Material" & _
         " FROM [qryShipments (" & Program & ")]" & _
         " GROUP BY [qryShipments (" & Program & ")].Material;"
 
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
 
 'This function creates the qryDemandInput (xxx) query using the program as the input
 Public Function createqryDemandInput(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -906,19 +907,19 @@ Public Function createqryDemandInput(ByVal Program As String)
     qryName = "qryDemandInput (" & Program & ")"
     
     
-    sql = "SELECT [Demand Input (" & Program & ")].*" & _
+    SQL = "SELECT [Demand Input (" & Program & ")].*" & _
         " FROM [Demand Input (" & Program & ")];"
 
 
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
 
 'This function creates the qryTotalCompleteDetailed (xxx) query using the program as the input
 Public Function createqryTotalCompleteDetailed(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -926,7 +927,7 @@ Public Function createqryTotalCompleteDetailed(ByVal Program As String)
     qryName = "qryTotalCompleteDetailed (" & Program & ")"
     
     
-    sql = "SELECT tblDemandInput.PN," & _
+    SQL = "SELECT tblDemandInput.PN," & _
           " First(Nz([qryFinishedGoods (" & Program & ")].[On Hand],0)) AS [Finished Goods]," & _
           " Sum(Nz([qryDlvOrdersPNQuantities (" & Program & ")].[DLVQTY],0)) AS [Total Completed]," & _
           " First(tblDemandInput.Program) AS Program," & _
@@ -940,14 +941,14 @@ Public Function createqryTotalCompleteDetailed(ByVal Program As String)
 
 
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
 
 'This function creates the qryTotalComplete (xxx) query using the program as the input
 Public Function createqryTotalComplete(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -955,7 +956,7 @@ Public Function createqryTotalComplete(ByVal Program As String)
     qryName = "qryTotalComplete (" & Program & ")"
     
     
-    sql = "SELECT [qryTotalCompleteDetailed (" & Program & ")].Program," & _
+    SQL = "SELECT [qryTotalCompleteDetailed (" & Program & ")].Program," & _
         " Sum(Nz([qryTotalCompleteDetailed (" & Program & ")].[Total Completed],0)) AS [Total Completed]," & _
         " Sum(NZ([qryTotalCompleteDetailed (" & Program & ")].[Total Shipped],0)) AS [Total Shipped]," & _
         " Sum(NZ([qryTotalCompleteDetailed (" & Program & ")].[Finished Goods],0)) AS [Finished Goods]" & _
@@ -965,14 +966,14 @@ Public Function createqryTotalComplete(ByVal Program As String)
 
 
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
 
 'This function creates the qryTotalWIP (xxx) query using the program as the input
 Public Function createqryTotalWIP(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -980,7 +981,7 @@ Public Function createqryTotalWIP(ByVal Program As String)
     qryName = "qryTotalWIP (" & Program & ")"
     
     
-    sql = "SELECT [qryRawData (" & Program & ")].Program," & _
+    SQL = "SELECT [qryRawData (" & Program & ")].Program," & _
           " Count([qryRawData (" & Program & ")].SN) AS CountOfSN" & _
           " FROM [qryRawData (" & Program & ")]" & _
           " GROUP BY [qryRawData (" & Program & ")].Program;"
@@ -988,14 +989,14 @@ Public Function createqryTotalWIP(ByVal Program As String)
 
 
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
 
 'This function creates the qryTotalWIPDetailed (xxx) query using the program as the input
 Public Function createqryTotalWIPDetailed(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -1003,21 +1004,21 @@ Public Function createqryTotalWIPDetailed(ByVal Program As String)
     qryName = "qryTotalWIPDetailed (" & Program & ")"
     
     
-    sql = "SELECT [qryRawData (" & Program & ")].Material," & _
+    SQL = "SELECT [qryRawData (" & Program & ")].Material," & _
           " Count([qryRawData (" & Program & ")].SN) AS CountOfSN" & _
           " FROM [qryRawData (" & Program & ")]" & _
           " GROUP BY [qryRawData (" & Program & ")].Material;"
 
 
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
 
 'This function creates the qryTotalWIPSWIP (xxx) query using the program as the input
 Public Function createqryTotalWIPSWIP(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     Dim element As Variant
@@ -1026,7 +1027,7 @@ Public Function createqryTotalWIPSWIP(ByVal Program As String)
     qryName = "qryTotalWIPSWIP (" & Program & ")"
     
     
-    sql = "SELECT [qryTotalWIP (" & Program & ")].[CountOfSN] AS [Total WIP], " & _
+    SQL = "SELECT [qryTotalWIP (" & Program & ")].[CountOfSN] AS [Total WIP], " & _
           "  Sum(CInt(Nz([tblOpNames_All].[SWIP],0))) AS [Total SWIP]" & _
           " FROM [qryTotalWIP (" & Program & ")] INNER JOIN tblOpNames_All ON" & _
           " [qryTotalWIP (" & Program & ")].[Program] = tblOpNames_All.[Program]" & _
@@ -1035,14 +1036,14 @@ Public Function createqryTotalWIPSWIP(ByVal Program As String)
 
 
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
 
 'This function creates the qrySummaryStats (xxx) query using the program as the input
 Public Function createqrySummaryStats(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -1050,7 +1051,7 @@ Public Function createqrySummaryStats(ByVal Program As String)
     qryName = "qrySummaryStats (" & Program & ")"
     
     
-    sql = "SELECT [qryOTD (" & Program & ")].[OTD %]," & _
+    SQL = "SELECT [qryOTD (" & Program & ")].[OTD %]," & _
         " [qryOutputLinearity (" & Program & ")].[Output Linearity]," & _
         " [qryTotalWIPSWIP (" & Program & ")].[Total SWIP]," & _
         " [qryTotalWIPSWIP (" & Program & ")].[Total WIP]," & _
@@ -1061,7 +1062,7 @@ Public Function createqrySummaryStats(ByVal Program As String)
         " [Standard Factory Metrics].Program," & _
         " Round([AvgOfAge],1) AS ShopOrderAge," & _
         " Round([AvgOfDaysToMFR],1) AS DaystoManufacture,"
-    sql = sql & " Round((CDbl([DeliveredOrdersSummary.AvgOfReleaseDev])+CDbl([OpenOrdersReleaseSummary.AvgOfReleaseDev]))/2,1) AS ReleaseDevFromPlan," & _
+    SQL = SQL & " Round((CDbl([DeliveredOrdersSummary.AvgOfReleaseDev])+CDbl([OpenOrdersReleaseSummary.AvgOfReleaseDev]))/2,1) AS ReleaseDevFromPlan," & _
         " Round((CDbl([DeliveredOrdersSummary.AvgOfDaysToStart])+CDbl([OpenOrdersStartSummary.AvgOfDaysToStart]))/2,1) AS ActStartAfterRelease," & _
         " [Standard Factory Metrics].OTRTotal," & _
         " [qryPlanExecution (" & Program & ")].[ReqDlvTot] AS [Required Cumulative], " & _
@@ -1074,14 +1075,14 @@ Public Function createqrySummaryStats(ByVal Program As String)
 
     '    " IIf((IsNull([DeliveredOrdersKitTATSummary].[AvgOfKittingTAT]) And IsNull([OpenOrdersKitTATSummary].[AvgOfKittingTAT])),'N/A',IIf((IsNull([DeliveredOrdersKitTATSummary].[AvgOfKittingTAT]) Or IsNull([OpenOrdersKitTATSummary].[AvgOfKittingTAT])),Round((CDbl(Nz([DeliveredOrdersKitTATSummary.AvgOfKittingTAT],0))+CDbl(Nz([OpenOrdersKitTATSummary.AvgOfKittingTAT],0))),1),Round((CDbl([DeliveredOrdersKitTATSummary.AvgOfKittingTAT])+CDbl([OpenOrdersKitTATSummary.AvgOfKittingTAT]))/2,1))) AS KittingTAT"
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
 
 'This function creates the qrySummaryStats (xxx) query using the program as the input
 Public Function createqryStoreSummaryStats(ByVal Program As String)
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -1089,7 +1090,7 @@ Public Function createqryStoreSummaryStats(ByVal Program As String)
     qryName = "qryStoreSummaryStats (" & Program & ")"
     
     
-    sql = "INSERT INTO SummaryStatsLog ( [OTD %]," & _
+    SQL = "INSERT INTO SummaryStatsLog ( [OTD %]," & _
         " [Output Linearity]," & _
         " [Total SWIP]," & _
         " [Total WIP]," & _
@@ -1114,7 +1115,7 @@ Public Function createqryStoreSummaryStats(ByVal Program As String)
         " [qrySummaryStats (" & Program & ")].[Total Completed]," & _
         " [qrySummaryStats (" & Program & ")].[Required Cumulative]," & _
         " [qrySummaryStats (" & Program & ")].Program,"
-    sql = sql & " [qrySummaryStats (" & Program & ")].ShopOrderAge," & _
+    SQL = SQL & " [qrySummaryStats (" & Program & ")].ShopOrderAge," & _
         " [qrySummaryStats (" & Program & ")].ReleaseDevFromPlan," & _
         " [qrySummaryStats (" & Program & ")].ActStartAfterRelease," & _
         " [qrySummaryStats (" & Program & ")].KittingTAT," & _
@@ -1122,14 +1123,14 @@ Public Function createqryStoreSummaryStats(ByVal Program As String)
         " FROM [qrySummaryStats (" & Program & ")];"
 
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
 
 'This function creates the qryRawData_RwrkOrders query using the program as the input
 Public Function createqryRwrkOrders()
-    Dim sql As Variant
+    Dim SQL As Variant
     Dim qdf As QueryDef
     Dim qryName As String
     
@@ -1137,7 +1138,7 @@ Public Function createqryRwrkOrders()
     qryName = "qryRawData_RwrkOrders"
     
     
-    sql = "SELECT [RAW DATA].Order," & _
+    SQL = "SELECT [RAW DATA].Order," & _
         " [RAW DATA].[Serial number]," & _
         " [RAW DATA].[Actual release date]," & _
         " [RAW DATA].Material," & _
@@ -1157,7 +1158,7 @@ Public Function createqryRwrkOrders()
 
 
     'Create Query
-    Set qdf = CurrentDb.CreateQueryDef(qryName, sql)
+    Set qdf = CurrentDb.CreateQueryDef(qryName, SQL)
     DoCmd.OpenQuery qdf.Name
     DoCmd.Close acQuery, qryName
 End Function
@@ -1256,3 +1257,36 @@ Public Function createqryProgramCall(ByVal Program As String)
     MsgBox "Operation Queries Created"
 End Function
 
+'Logs the error description, time, and function or sub that the error occured in
+Public Sub LogErrorDesc(ErrTxt As String, ErrLoc As String)
+    Dim DB As Object
+    Dim SQL As String
+    
+    Set DB = CurrentDb
+    
+    SQL = "INSERT INTO ErrorLog ( [DateTime], ErrorDesc, LocOfError )" & _
+          " SELECT '" & Now() & "', '" & ErrTxt & "', '" & ErrLoc & "';"
+    
+    DB.Execute (SQL)
+    
+    Set DB = Nothing
+    
+End Sub
+
+
+'This function returns the program name of a give form
+'by taking what is between the parenthesis in the form
+'title
+Public Function FindCurrentProgram(frmObj As Object) As String
+    Dim CurrentFormName, Program, temp As String
+    Dim paren1Loc, paren2Loc As Integer
+
+    'Determine current form program name to pass to
+    CurrentFormName = frmObj.Name
+    paren1Loc = InStr(CurrentFormName, "(")
+    paren2Loc = InStr(CurrentFormName, ")")
+    Program = Left(CurrentFormName, paren2Loc - 1)
+    Program = Right(Program, paren2Loc - paren1Loc - 1)
+    
+    FindCurrentProgram = Program
+End Function
