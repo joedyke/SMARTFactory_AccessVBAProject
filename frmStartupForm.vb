@@ -1,6 +1,17 @@
+Option Compare Database
+Option Explicit
+
 
 Private Sub Form_Close()
+On Error GoTo Err_handler
     DoCmd.RunMacro "RunStoreSummaryStats"
+    
+Form_Close_Exit:
+    Exit Sub
+    
+Err_handler:
+    Call LogErrorDesc(Error$, "StartupForm")
+    Resume Form_Close_Exit
 End Sub
 
 Private Sub Form_Open(Cancel As Integer)
