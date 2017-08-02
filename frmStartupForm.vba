@@ -21,7 +21,7 @@ End Sub
 Private Sub Form_Timer()
     'Close dashboard after 4:00 pm
     If Timer > 57600 Then
-        DoCmd.Quit
+        Application.Quit
     End If
 End Sub
 
